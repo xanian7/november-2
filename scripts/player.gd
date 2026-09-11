@@ -9,6 +9,7 @@ const JUMP_VELOCITY = -400.0
 
 ## Add player to the player group so when the player enters an area we know it's them
 func _ready() -> void:
+	GameManager.spawn_player.connect(spawn)
 	add_to_group("player")
 
 ## Move the player
@@ -30,3 +31,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 
 	move_and_slide()
+
+## Spawns the player at the coordinates given by the GameManager
+func spawn() -> void:
+	position = GameManager.player_spawn_point
