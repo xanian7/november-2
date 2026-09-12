@@ -5,7 +5,7 @@ class_name RoomGenerator
 @export var custom_seed: int
 @export var frequency: float = 0.05 # This will more than likely never be changed (lower the value the less noise)
 @export var room_range: Vector2i = Vector2i(64, 64) # Determines the size of the room
-@export var desired_spawn_point: Vector2i = Vector2i(1, room_range.y) # bottom right of the room
+@export var desired_spawn_point: Vector2i = Vector2i(1, room_range.y - 4) # bottom left of the room
 
 # TODO: put more COORDS for tiles here once they are created
 const TEST_COORD = Vector2i(0,0)
@@ -51,7 +51,7 @@ func generate_room() -> void:
 	generate_spawn()
 	
 ## Generate a spawn point for the player. It will usually be the closest spot to the bottom left of the room
-## TODO: fix spawn point. currently it will spawn in the top left no matter if there is an open space or not
+# TODO: find a spot to generate a ladder
 func generate_spawn() -> void:
 	var used_cells = room_tile_map.get_used_cells()
 	var found_spawn = false
@@ -59,7 +59,8 @@ func generate_spawn() -> void:
 	while !found_spawn:
 		if !used_cells.has(spawn_point):
 			found_spawn = true
-			GameManager.player_spawn_point = spawn_point
+			var local_coords = room_tile_map.map_to_local(spawn_point) # coords of a tilemap don't directly align to coords on the local coordinate plane so convert them to local 
+			GameManager.player_spawn_point = room_tile_map.to_global(local_coords) # take the local coords and convert them to the global coordinate plane
 			GameManager.spawn_player.emit()
 		else:
 			spawn_point = Vector2i(spawn_point.x + 1, spawn_point.y)
