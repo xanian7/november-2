@@ -4,7 +4,7 @@ class_name RoomGenerator
 @export var room_tile_map : RoomTileMap
 @export var custom_seed: int
 @export var frequency: float = 0.05 # This will more than likely never be changed (lower the value the less noise)
-@export var room_range: Vector2i = Vector2i(64, 64) # Determines the size of the room
+@export var room_range: Vector2i = Vector2i(256, 256) # Determines the size of the room
 @export var desired_spawn_point: Vector2i = Vector2i(1, room_range.y - 4) # bottom left of the room
 
 # TODO: put more COORDS for tiles here once they are created
