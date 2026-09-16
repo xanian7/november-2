@@ -64,6 +64,26 @@ func generate_spawn() -> void:
 			GameManager.spawn_player.emit()
 		else:
 			spawn_point = Vector2i(spawn_point.x + 1, spawn_point.y)
+
+func wfc(tilemap: TileMapLayer) -> void: 
+	# get all different types of tiles in the tileset
+	
+	# create a dictionary of tiles where their possible neighbors will
+	# be listed
+	
+	# parse through tilemap and add to the dictionary what the given tiles
+	# have as neighbors	
+	
+	# the tilemap to generate should have a size so loop through the x 
+	# and y values of the size
+	
+		# randomly place a tile 
+		# check its possible neighbors and place a random tile based on 
+		# the list of possiblilties
+		# if the tile its about to place has another neighbor then select 
+		# one that satisfies both neighboring conditions
+		
+	pass
 	
 ## Saves the room data so the room can be recreated at any given time
 func save_room() -> void:
