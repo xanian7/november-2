@@ -70,12 +70,12 @@ func wfc(tilemap: TileMapLayer) -> void:
 	var tiles = tilemap.get_used_cells()
 	
 	# create a dictionary of tiles where their possible neighbors will be listed
-	var possible_tiles: Dictionary[int, TilePossibilities]
+	var possible_tiles: Dictionary[Vector2i, TilePossibilities]
 	
 	for tile in tiles: 
-		var tile_id = tilemap.get_cell_source_id(tile) # gets the tile id from the coords
+		#var tile_id = tilemap.get_cell_source_id(tile) # gets the tile id from the coords
 		var possible_neighbors = tilemap.get_surrounding_cells(tile) # gets its surrounding compatible friends
-		var existing_tile = possible_tiles.get_or_add(tile_id) # checks if there is an already existing id in the dictionary for it
+		var existing_tile = possible_tiles.get_or_add(tile) # checks if there is an already existing coord in the dictionary for it
 		
 		var possibility_object: TilePossibilities
 		if existing_tile: # if it exists then just append the possbile tiles
@@ -84,25 +84,32 @@ func wfc(tilemap: TileMapLayer) -> void:
 		# parse through tilemap and add to the dictionary what the given tiles have as neighbors
 		for neighbor in possible_neighbors:
 			if neighbor.x > tile.x:
-				possibility_object.right.append(tilemap.get_cell_source_id(neighbor))
+				possibility_object.right.append(neighbor)
 			elif neighbor.x < tile.x:
-				possibility_object.left.append(tilemap.get_cell_source_id(neighbor))
+				possibility_object.left.append(neighbor)
 			elif neighbor.y > tile.y:
-				possibility_object.down.append(tilemap.get_cell_source_id(neighbor))
+				possibility_object.down.append(neighbor)
 			elif neighbor.y < tile.y:
-				possibility_object.up.append(tilemap.get_cell_source_id(neighbor))
+				possibility_object.up.append(neighbor)
 			else:
 				pass # placeholder for now
 				
-	
-	# the tilemap to generate should have a size so loop through the x 
-	# and y values of the size
-	
-		# randomly place a tile 
-		# check its possible neighbors and place a random tile based on 
-		# the list of possiblilties
-		# if the tile its about to place has another neighbor then select 
-		# one that satisfies both neighboring conditions
+	var all_tile_ids = possible_tiles.keys()
+	# the tilemap to generate should have a size so loop through the x and y values of the size
+	for x in room_range.x:
+		for y in room_range.y:
+			# check potential neighbors
+			var surrounding_tiles = room_tile_map.get_surrounding_cells(Vector2i(x, y))
+			if not surrounding_tiles.any: # has no neighbors
+				# place random tile
+				room_tile_map.set_cell(Vector2i(x, y), 0, all_tile_ids[randi_range(0, all_tile_ids.size())])
+			else:
+				# check every neighbor and place a tile based on the list of possiblilties given after assessing which can be placed
+				var possible = possible_tiles.get(Vector2i(x, y))
+				
+				pass
+			# if the tile its about to place has another neighbor then select 
+			# one that satisfies both neighboring conditions
 		
 	pass
 	
