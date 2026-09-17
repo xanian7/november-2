@@ -67,12 +67,33 @@ func generate_spawn() -> void:
 
 func wfc(tilemap: TileMapLayer) -> void: 
 	# get all different types of tiles in the tileset
+	var tiles = tilemap.get_used_cells()
 	
-	# create a dictionary of tiles where their possible neighbors will
-	# be listed
+	# create a dictionary of tiles where their possible neighbors will be listed
+	var possible_tiles: Dictionary[int, TilePossibilities]
 	
-	# parse through tilemap and add to the dictionary what the given tiles
-	# have as neighbors	
+	for tile in tiles: 
+		var tile_id = tilemap.get_cell_source_id(tile) # gets the tile id from the coords
+		var possible_neighbors = tilemap.get_surrounding_cells(tile) # gets its surrounding compatible friends
+		var existing_tile = possible_tiles.get_or_add(tile_id) # checks if there is an already existing id in the dictionary for it
+		
+		var possibility_object: TilePossibilities
+		if existing_tile: # if it exists then just append the possbile tiles
+			possibility_object = existing_tile
+			
+		# parse through tilemap and add to the dictionary what the given tiles have as neighbors
+		for neighbor in possible_neighbors:
+			if neighbor.x > tile.x:
+				possibility_object.right.append(tilemap.get_cell_source_id(neighbor))
+			elif neighbor.x < tile.x:
+				possibility_object.left.append(tilemap.get_cell_source_id(neighbor))
+			elif neighbor.y > tile.y:
+				possibility_object.down.append(tilemap.get_cell_source_id(neighbor))
+			elif neighbor.y < tile.y:
+				possibility_object.up.append(tilemap.get_cell_source_id(neighbor))
+			else:
+				pass # placeholder for now
+				
 	
 	# the tilemap to generate should have a size so loop through the x 
 	# and y values of the size
