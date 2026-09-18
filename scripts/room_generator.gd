@@ -6,6 +6,7 @@ class_name RoomGenerator
 @export var frequency: float = 0.05 # This will more than likely never be changed (lower the value the less noise)
 @export var room_range: Vector2i = Vector2i(256, 256) # Determines the size of the room
 @export var desired_spawn_point: Vector2i = Vector2i(1, room_range.y - 4) # bottom left of the room
+@export var example_tile_map: TileMapLayer
 
 # TODO: put more COORDS for tiles here once they are created
 const TEST_COORD = Vector2i(0,0)
@@ -95,6 +96,10 @@ func wfc(tilemap: TileMapLayer) -> void:
 				pass # placeholder for now
 				
 	var all_tile_ids = possible_tiles.keys()
+	
+	wfc_find_and_place_tiles(Vector2i(0,0), possible_tiles)
+	
+	
 	# the tilemap to generate should have a size so loop through the x and y values of the size
 	for x in room_range.x:
 		for y in room_range.y:
@@ -105,14 +110,34 @@ func wfc(tilemap: TileMapLayer) -> void:
 				room_tile_map.set_cell(Vector2i(x, y), 0, all_tile_ids[randi_range(0, all_tile_ids.size())])
 			else:
 				# check every neighbor and place a tile based on the list of possiblilties given after assessing which can be placed
-				var possible = possible_tiles.get(Vector2i(x, y))
+				var possible: TilePossibilities = possible_tiles.get(Vector2i(x, y))
 				
-				pass
+				
 			# if the tile its about to place has another neighbor then select 
 			# one that satisfies both neighboring conditions
 		
 	pass
+
+func wfc_find_and_place_tiles(coords: Vector2i, possible_tiles: Dictionary[Vector2i, TilePossibilities]) -> void:
+	if coords.x > room_range.x and coords.y > room_range.y:
+		return 
+		
+	var surrounding_tiles = room_tile_map.get_surrounding_cells(coords)
+	if surrounding_tiles:
+		var possible: TilePossibilities = possible_tiles.get(coords)
+	else:
+		pass
 	
+	
+
+## Searches for a valid tile to place based on possible neighbors and returns the atlas coordinates of the tile to place
+func wfc_valid_tile_search(tile_to_place_coords: Vector2i, possible_tiles: Dictionary[Vector2i, TilePossibilities]) -> Vector2i:
+	var possible: TilePossibilities = possible_tiles.get(tile_to_place_coords)
+	
+	
+		
+	return Vector2i(0,0)
+
 ## Saves the room data so the room can be recreated at any given time
 func save_room() -> void:
 	pass

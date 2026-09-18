@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://j03optwg54m8" path="res://scenes/room_tile_map.gd" id="2_0wfyh"]
 [ext_resource type="Texture2D" uid="uid://mmr4uqkvh8xy" path="res://assets/test-cube.png" id="2_sugp2"]
 [ext_resource type="Texture2D" uid="uid://qjb0apoesy8t" path="res://assets/ladder.png" id="5_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://b61hv3xg7ft1w" path="res://scenes/example_tile_map.tscn" id="6_o6xl0"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_jyhfs"]
 texture = ExtResource("2_sugp2")
@@ -40,13 +41,17 @@ position = Vector2(1, -20)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=2145624377]
 
-[node name="RoomGenerator" type="Node2D" parent="." unique_id=377271433 node_paths=PackedStringArray("room_tile_map")]
+[node name="RoomGenerator" type="Node2D" parent="." unique_id=377271433 node_paths=PackedStringArray("room_tile_map", "example_tile_map")]
 script = ExtResource("1_o5qli")
 room_tile_map = NodePath("RoomTileMap")
+example_tile_map = NodePath("ExampleTileMap")
 
 [node name="RoomTileMap" type="TileMapLayer" parent="RoomGenerator" unique_id=1340784775]
 tile_set = SubResource("TileSet_0wfyh")
 script = ExtResource("2_0wfyh")
+
+[node name="ExampleTileMap" parent="RoomGenerator" unique_id=1825616491 instance=ExtResource("6_o6xl0")]
+position = Vector2(-955, 173)
 
 [node name="StartingRoom" type="Node2D" parent="." unique_id=1704117123]
 
