@@ -4,15 +4,20 @@ class_name RoomGenerator
 @export var room_tile_map : RoomTileMap
 @export var custom_seed: int
 @export var frequency: float = 0.05 # This will more than likely never be changed (lower the value the less noise)
-@export var room_range: Vector2i = Vector2i(256, 256) # Determines the size of the room
+@export var room_range: Vector2i = Vector2i(50, 50) # Determines the size of the room
 @export var desired_spawn_point: Vector2i = Vector2i(1, room_range.y - 4) # bottom left of the room
 @export var example_tile_map: TileMapLayer
+
+# Wave function collapse
+const WFC_DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+const NUM_ATTEMPTS: int = 30
+const WFC_AIR : Vector2i = Vector2i(-1, -1)
 
 # TODO: put more COORDS for tiles here once they are created
 const TEST_COORD = Vector2i(0,0)
 
 func _ready() -> void: 
-	GameManager.generate_new_room.connect(generate_room)
+	GameManager.generate_new_room.connect(wfc)
 
 ## Randomly generates a room based on arguments
 ## (ex. type of room, room size, etc.)
@@ -66,77 +71,161 @@ func generate_spawn() -> void:
 		else:
 			spawn_point = Vector2i(spawn_point.x + 1, spawn_point.y)
 
-func wfc(tilemap: TileMapLayer) -> void: 
-	# get all different types of tiles in the tileset
-	var tiles = tilemap.get_used_cells()
+
+func wfc(tilemap: TileMapLayer = null) -> void: 
+	if tilemap == null:
+		tilemap = example_tile_map
 	
-	# create a dictionary of tiles where their possible neighbors will be listed
-	var possible_tiles: Dictionary[Vector2i, TilePossibilities]
+	var rules: Dictionary[Vector2i, TilePossibilities] = {} # Vector2i is the tile type and TilePossibilities is the allowed neighboring tiles
+	var sample_rect := tilemap.get_used_rect() # get the used tiles in the tilemap
 	
-	for tile in tiles: 
-		#var tile_id = tilemap.get_cell_source_id(tile) # gets the tile id from the coords
-		var possible_neighbors = tilemap.get_surrounding_cells(tile) # gets its surrounding compatible friends
-		var existing_tile = possible_tiles.get_or_add(tile) # checks if there is an already existing coord in the dictionary for it
-		
-		var possibility_object: TilePossibilities
-		if existing_tile: # if it exists then just append the possbile tiles
-			possibility_object = existing_tile
+	# if the sample tilemap has nothing then do nothing
+	if sample_rect.size == Vector2i.ZERO:
+		return
+	
+	for x in range(sample_rect.position.x, sample_rect.end.x):
+		for y in range(sample_rect.position.y, sample_rect.end.y):
+			var coords := Vector2i(x, y)
+			var tile_type : Vector2i = wfc_tile_type(tilemap, coords) # get what type of tile is at the coords
 			
-		# parse through tilemap and add to the dictionary what the given tiles have as neighbors
-		for neighbor in possible_neighbors:
-			if neighbor.x > tile.x:
-				possibility_object.right.append(neighbor)
-			elif neighbor.x < tile.x:
-				possibility_object.left.append(neighbor)
-			elif neighbor.y > tile.y:
-				possibility_object.down.append(neighbor)
-			elif neighbor.y < tile.y:
-				possibility_object.up.append(neighbor)
-			else:
-				pass # placeholder for now
+			# instantiate a new tile and its possible neighbors in the dictionary if it doesnt already exist
+			if not rules.has(tile_type):
+				rules[tile_type] = TilePossibilities.new()
+			
+			# go through each direction to get the allowed neighbors for each tile
+			for direction in WFC_DIRECTIONS:
+				var neighbor_position: Vector2i = coords + direction
 				
-	var all_tile_ids = possible_tiles.keys()
-	
-	wfc_find_and_place_tiles(Vector2i(0,0), possible_tiles)
-	
-	
-	# the tilemap to generate should have a size so loop through the x and y values of the size
-	for x in room_range.x:
-		for y in room_range.y:
-			# check potential neighbors
-			var surrounding_tiles = room_tile_map.get_surrounding_cells(Vector2i(x, y))
-			if not surrounding_tiles.any: # has no neighbors
-				# place random tile
-				room_tile_map.set_cell(Vector2i(x, y), 0, all_tile_ids[randi_range(0, all_tile_ids.size())])
-			else:
-				# check every neighbor and place a tile based on the list of possiblilties given after assessing which can be placed
-				var possible: TilePossibilities = possible_tiles.get(Vector2i(x, y))
+				# skip points outside the example tilemap area instead of assigning it to an air tile
+				if not sample_rect.has_point(neighbor_position):
+					continue
 				
+				var neighbor_type : Vector2i = wfc_tile_type(tilemap, neighbor_position)
+				var allowed : Array[Vector2i] = wfc_allowed(rules[tile_type], direction) # get the allowed tiles
 				
-			# if the tile its about to place has another neighbor then select 
-			# one that satisfies both neighboring conditions
+				# check if the allowed array already has the neighbor, if not add it to the array
+				if not allowed.has(neighbor_type):
+					allowed.append(neighbor_type)
+	
+	for attempt in range(NUM_ATTEMPTS):
+		var wave : Dictionary = wfc_solve(rules) # returns the tiles to place after it's been solved 
 		
-	pass
+		# restart the solution
+		if wave.is_empty():
+			continue
+		
+		room_tile_map.clear() # figure out why tf this works
+		
+		# place the tiles 
+		for coords in wave: 
+			var tile_type: Vector2i = wave[coords][0]
+			
+			if tile_type != WFC_AIR:
+				room_tile_map.set_cell(coords, 1, tile_type)
+		
+		return
+		
+	push_warning("WFC did not find a solution") # debug, TODO: remove once reworked 
 
-func wfc_find_and_place_tiles(coords: Vector2i, possible_tiles: Dictionary[Vector2i, TilePossibilities]) -> void:
-	if coords.x > room_range.x and coords.y > room_range.y:
-		return 
+## returns the tile's atlas coords at the coords designated by @coords
+func wfc_tile_type(tilemap: TileMapLayer, coords: Vector2i) -> Vector2i:
+	if tilemap.get_cell_source_id(coords) == -1:
+		return WFC_AIR # no tile placed which means it's an air tile
 		
-	var surrounding_tiles = room_tile_map.get_surrounding_cells(coords)
-	if surrounding_tiles:
-		var possible: TilePossibilities = possible_tiles.get(coords)
-	else:
-		pass
-	
-	
+	return tilemap.get_cell_atlas_coords(coords) # return the altas coords of tile at the coords designated
 
-## Searches for a valid tile to place based on possible neighbors and returns the atlas coordinates of the tile to place
-func wfc_valid_tile_search(tile_to_place_coords: Vector2i, possible_tiles: Dictionary[Vector2i, TilePossibilities]) -> Vector2i:
-	var possible: TilePossibilities = possible_tiles.get(tile_to_place_coords)
+## returns the allowed tiles at the given direction
+func wfc_allowed(possibilites: TilePossibilities, direction: Vector2i) -> Array[Vector2i]:
+	match direction:
+		Vector2i.LEFT:
+			return possibilites.left
+		Vector2i.RIGHT:
+			return possibilites.right
+		Vector2i.UP:
+			return possibilites.up
+		Vector2i.DOWN:
+			return possibilites.down
+	return []
 	
+func wfc_solve(rules: Dictionary[Vector2i, TilePossibilities]) -> Dictionary:
+	var wave: Dictionary = {} 
+	var all_types : Array[Vector2i] = rules.keys()
+	var pending: Array[Vector2i] = []
 	
+	for x in range(room_range.x):
+		for y in range(room_range.y):
+			var coords := Vector2i(x, y)
+			
+			wave[coords] = all_types.duplicate()
+			pending.append(coords)
+			
+	while true:
+		if not wfc_propagate(wave, rules, pending):
+			return {}
 		
-	return Vector2i(0,0)
+		var smallest_count: int = all_types.size() + 1
+		var candidates: Array[Vector2i] = []
+		
+		for coords in wave:
+			var count: int = wave[coords].size()
+			
+			if count == 0:
+				return {}
+			if count == 1:
+				continue
+			if count < smallest_count:
+				smallest_count = count
+				candidates.clear() 
+				candidates.append(coords)
+			elif count == smallest_count:
+				candidates.append(coords)
+				
+		if candidates.is_empty():
+			return wave
+			
+		var chosen_position: Vector2i = candidates.pick_random()
+		var chosen_type: Vector2i = wave[chosen_position].pick_random()
+		
+		wave[chosen_position] = [chosen_type]
+		pending.append(chosen_position)
+		
+	return {}
+	
+func wfc_propagate(wave: Dictionary, rules: Dictionary[Vector2i, TilePossibilities], pending: Array[Vector2i]) -> bool:
+	while not pending.is_empty():
+		var coords: Vector2i = pending.pop_back()
+		
+		for direction in WFC_DIRECTIONS:
+			var neighbor_position: Vector2i = coords + direction
+			
+			if not wave.has(neighbor_position):
+				continue
+				
+			var supported: Array[Vector2i] = []
+			for tile_type in wave[coords]:
+				var allowed : Array[Vector2i] = wfc_allowed(rules[tile_type], direction)
+				
+				for neighbor_type in allowed:
+					if not supported.has(neighbor_type):
+						supported.append(neighbor_type)
+			
+			var remaining: Array[Vector2i] = []
+			
+			for neighbor_type in wave[neighbor_position]:
+				if supported.has(neighbor_type):
+					remaining.append(neighbor_type)
+					
+			if remaining.is_empty():
+				return false
+				
+			if remaining.size() < wave[neighbor_position].size():
+				wave[neighbor_position] = remaining
+				
+				if not pending.has(neighbor_position):
+					pending.append(neighbor_position)
+	
+	return true
+
 
 ## Saves the room data so the room can be recreated at any given time
 func save_room() -> void:
