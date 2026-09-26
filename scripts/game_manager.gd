@@ -2,7 +2,7 @@ extends Node
 ## Any game data that may need to be shared across states, or needs to be saved goes here.
 
 @export var disable_ladder: bool = false
-@export var player_spawn_point: Vector2i = Vector2i(0, 0) # default to (0,0) but this is where the player will spawn in a new room (determined by the RoomGenerator)
+@export var player_spawn_point: Vector2 = Vector2.ZERO # Global position selected by the RoomGenerator
 @export var curren_room_seed: int = 0
 
 ## Emit when the game needs to create a new room 

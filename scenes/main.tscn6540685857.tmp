@@ -67,7 +67,6 @@ position = Vector2(136, -8)
 position = Vector2(1, -20)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=2145624377]
-zoom = Vector2(0.5, 0.5)
 
 [node name="RoomGenerator" type="Node2D" parent="." unique_id=377271433 node_paths=PackedStringArray("room_tile_map", "example_tile_map")]
 script = ExtResource("1_o5qli")

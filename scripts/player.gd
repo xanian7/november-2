@@ -51,4 +51,6 @@ func jump(delta: float) -> void:
 
 ## Spawns the player at the coordinates given by the GameManager
 func spawn() -> void:
-	position = GameManager.player_spawn_point
+	global_position = GameManager.player_spawn_point
+	velocity = Vector2.ZERO
+	time_jump_held = 0.0
