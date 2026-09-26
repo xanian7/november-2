@@ -9,6 +9,9 @@ var time_jump_held: float = 0.0 # timer for jump
 const SPEED: float = 300.0
 const JUMP_VELOCITY: float = -400.0
 
+@export var MAX_HEALTH: int = 100 # default to 100, will be more for bosses
+var health_remaining: int = MAX_HEALTH # default to MAX_HEALTH until otherwise changed
+
 ## Add player to the player group so when the player enters an area we know it's them
 func _ready() -> void:
 	GameManager.spawn_player.connect(spawn)
@@ -54,3 +57,7 @@ func spawn() -> void:
 	global_position = GameManager.player_spawn_point
 	velocity = Vector2.ZERO
 	time_jump_held = 0.0
+	
+
+func take_damage(damage_amount: int) -> void:
+	pass

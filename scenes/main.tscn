@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://qjb0apoesy8t" path="res://assets/ladder.png" id="5_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://dqrkr850cuvkq" path="res://scenes/rooms/room_type_2.tscn" id="5_ya4ey"]
 [ext_resource type="PackedScene" uid="uid://b61hv3xg7ft1w" path="res://scenes/example_tile_map.tscn" id="6_o6xl0"]
+[ext_resource type="PackedScene" uid="uid://xpqg8yyfmxix" path="res://scenes/rooms/room_type_ladder.tscn" id="6_ya4ey"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_85g3d"]
 texture = ExtResource("4_tipki")
@@ -67,13 +68,13 @@ position = Vector2(136, -8)
 position = Vector2(1, -20)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=2145624377]
-zoom = Vector2(0.5, 0.5)
 
 [node name="RoomGenerator" type="Node2D" parent="." unique_id=377271433 node_paths=PackedStringArray("room_tile_map", "example_tile_map")]
 script = ExtResource("1_o5qli")
 room_tile_map = NodePath("RoomTileMap")
 example_tile_map = NodePath("ExampleTileMap")
 room_presets = Array[PackedScene]([ExtResource("4_choun"), ExtResource("5_ya4ey")])
+ladder_room_preset = ExtResource("6_ya4ey")
 
 [node name="RoomTileMap" type="TileMapLayer" parent="RoomGenerator" unique_id=1340784775]
 tile_set = SubResource("TileSet_0wfyh")

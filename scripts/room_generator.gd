@@ -15,6 +15,7 @@ const WFC_AIR : Vector2i = Vector2i(-1, -1)
 
 # Procedural
 @export var room_presets : Array[PackedScene]
+@export var ladder_room_preset: PackedScene
 const MAX_ROOMS: int = 10
 const MIN_ROOMS: int = 4
 const MIN_SPACING: int = 5
@@ -62,7 +63,7 @@ func generate_room() -> void:
 	
 	generate_spawn()
 	
-## Finds supported, empty space inside a room, preferring its bottom-left area.
+## Finds supported, empty space inside a room, preferring its bottom-left area
 func generate_spawn(bounds: Array[Rect2i] = []) -> bool:
 	var player := get_tree().get_first_node_in_group("player") as Player
 	if player == null:
@@ -87,7 +88,7 @@ func generate_spawn(bounds: Array[Rect2i] = []) -> bool:
 				var position := room_tile_map.map_to_local(floor_cell)
 				position.x -= body_bounds.get_center().x
 				position.y -= room_tile_map.tile_set.tile_size.y * 0.5 + body_bounds.end.y + 0.5
-				# Include a small margin around the player's actual collision shape.
+				# Include a small margin around the player's actual collision shape
 				var occupied := Rect2(position + body_bounds.position, body_bounds.size).grow(0.25)
 				var first := room_tile_map.local_to_map(occupied.position)
 				var last := room_tile_map.local_to_map(occupied.end - Vector2(0.001, 0.001))
@@ -102,7 +103,7 @@ func generate_spawn(bounds: Array[Rect2i] = []) -> bool:
 							safe = false
 				if safe:
 					GameManager.player_spawn_point = room_tile_map.to_global(position)
-					# Ladder entry occurs during physics; move after its callback finishes.
+					# Ladder entry occurs during physics; move after its callback finishes
 					GameManager.spawn_player_at_coords.call_deferred()
 					return true
 	push_warning("No safe player spawn found inside the generated rooms.")
@@ -286,7 +287,12 @@ func procedural_generation() -> void:
 	var num_rooms: int = randi_range(MIN_ROOMS, MAX_ROOMS)
 	# loop through number of rooms and select a random room for each number
 	for i in range(num_rooms):
-		var scene: PackedScene = room_presets.pick_random()
+		var scene: PackedScene
+		if i == 0: 
+			scene = ladder_room_preset
+		else:
+			scene = room_presets.pick_random()
+		
 		var preset: RoomTileMap = scene.instantiate() 
 		var source_bounds: Rect2i = preset.get_used_rect()
 		
@@ -367,7 +373,7 @@ func get_room_doors(preset: RoomTileMap, bounds: Rect2i, position: Vector2i) -> 
 	return doors
 
 
-## Joins new rooms to the connected group through unused doors, shortest route first.
+## joins new rooms to the connected group through unused doors, shortest route first
 func connect_room_doors(bounds: Array[Rect2i], room_doors: Array) -> Array[int]:
 	if bounds.is_empty():
 		return []
@@ -437,7 +443,7 @@ func connect_room_doors(bounds: Array[Rect2i], room_doors: Array) -> Array[int]:
 	return connected
 
 
-## Tests room bounds, optionally excluding a border of inset tiles.
+## tests room bounds, optionally excluding a border of inset tiles
 func is_inside_room(cell: Vector2i, bounds: Array[Rect2i], inset: int = 0) -> bool:
 	for room_bounds in bounds:
 		var interior := room_bounds.grow(-inset)
@@ -446,7 +452,7 @@ func is_inside_room(cell: Vector2i, bounds: Array[Rect2i], inset: int = 0) -> bo
 	return false
 
 
-## Builds tunnels outside rooms and opens doorways through their outer walls.
+## builds tunnels outside rooms and opens doorways through their outer walls
 func build_corridors(path: Array[Vector2i], bounds: Array[Rect2i]) -> void:
 	for cell in path:
 		for x in range(-2, 3):
@@ -456,7 +462,7 @@ func build_corridors(path: Array[Vector2i], bounds: Array[Rect2i]) -> void:
 				if not is_inside_room(destination, bounds):
 					room_tile_map.set_cell(destination, 0, TEST_COORD)
 
-	# Clear every interior after building all walls so bends and crossings stay open.
+	# clear every interior after building all walls so bends and crossings stay open
 	for cell in path:
 		for x in range(-1, 2):
 			for y in range(-1, 2):
