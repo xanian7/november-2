@@ -1,12 +1,15 @@
 extends CharacterBody2D
 class_name Player
 
+
+@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+
 # TODO: create a state manager to deal with player movement
 
 @export var MAX_JUMP_TIME: float = 0.1 # variable jump max timing
 @export var FALLING_VELOCITY: float = 10.0 # what to increment the falling velocity by since it feels too floaty
 var time_jump_held: float = 0.0 # timer for jump
-const SPEED: float = 300.0
+const SPEED: float = 200.0
 const JUMP_VELOCITY: float = -400.0
 
 @export var MAX_HEALTH: int = 100 # default to 100, will be more for bosses
@@ -30,9 +33,20 @@ func _physics_process(delta: float) -> void:
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var direction := Input.get_axis("move_left", "move_right")
 	if direction:
+		
+		
+		if direction < 0:
+			animated_sprite_2d.flip_h = true
+		elif direction > 0:
+			animated_sprite_2d.flip_h = false
+		
 		velocity.x = direction * SPEED
+		
+		if velocity.x != 0:
+			animated_sprite_2d.play("run")
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
+		animated_sprite_2d.play("idle")
 
 	move_and_slide()
 
