@@ -1,4 +1,22 @@
 extends Node
+### TODO: To-do board
+'''
+- Create menu ui to pause game
+- Start screen
+- Save
+- Beginning room - allow the player to decorate?
+- Power ups
+- Enemies
+- New rooms
+- Key system to go to new rooms
+- Bosses 
+- Attacks
+- Rework room generation
+
+'''
+
+
+
 ## Any game data that may need to be shared across states, or needs to be saved goes here.
 
 @export var disable_ladder: bool = false
@@ -6,7 +24,7 @@ extends Node
 @export var curren_room_seed: int = 0
 
 ## Emit when the game needs to create a new room 
-signal generate_new_room
+signal load_new_room
 signal spawn_player
 
 ## Start
@@ -33,7 +51,7 @@ func save() -> void:
 func start_game() -> void:
 	# NOTE: if this signal is connected to prior to the GameManager being created it will not signal to that class
 	# TODO: Create methods that can be called to emit this signal so other classes can connect to it without having to reference eachother
-	generate_new_room.emit()
+	load_new_room.emit()
 
 ## Emits the spawn player signal to spawn the player at the given coordinates from player_spawn_point
 func spawn_player_at_coords() -> void:
